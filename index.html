@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artest - AR Coloring Experience</title>
+    
+    <!-- Dependencies -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- UI Coloring Dashboard -->
+    <div id="ui-overlay">
+        <h1>AR Coloring</h1>
+        <p>Warnai di bawah ini untuk melihat hasilnya pada objek 3D!</p>
+        
+        <canvas id="drawingCanvas"></canvas>
+
+        <div class="controls">
+            <div class="row">
+                <label>Ukuran Kuas</label>
+                <input type="range" id="penSize" min="5" max="50" value="15">
+            </div>
+
+            <div class="color-palette">
+                <div class="color-swatch active" style="background:#6366f1" data-color="#6366f1"></div>
+                <div class="color-swatch" style="background:#f43f5e" data-color="#f43f5e"></div>
+                <div class="color-swatch" style="background:#10b981" data-color="#10b981"></div>
+                <div class="color-swatch" style="background:#f59e0b" data-color="#f59e0b"></div>
+                <div class="color-swatch" style="background:#3b82f6" data-color="#3b82f6"></div>
+                <div class="color-swatch" style="background:#000000" data-color="#000000"></div>
+            </div>
+
+            <div class="buttons">
+                <button id="clearBtn">Hapus Semua</button>
+                <button id="saveBtn" onclick="alert('Tekstur tersimpan (simulasi)')">Selesai</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div id="ar-instructions">
+        <span>📸 Arahkan kamera ke <b>Marker Hiro</b></span>
+    </div>
+
+    <!-- AR Scene -->
+    <a-scene 
+        embedded 
+        arjs="sourceType: webcam; debugUIEnabled: false;" 
+        vr-mode-ui="enabled: false">
+        
+        <a-assets>
+            <!-- User 3D Object -->
+            <a-asset-item id="userModel" src="assets/marker 1.glb"></a-asset-item>
+        </a-assets>
+
+        <!-- Marker Hiro (Default) -->
+        <a-marker preset="hiro">
+            <a-entity 
+                id="coloredObject"
+                gltf-model="#userModel" 
+                scale="1 1 1" 
+                position="0 0 0" 
+                rotation="0 0 0">
+            </a-entity>
+        </a-marker>
+
+        <!-- Kamera AR -->
+        <a-entity camera></a-entity>
+        
+    </a-scene>
+
+    <script src="app.js"></script>
+</body>
+</html>
