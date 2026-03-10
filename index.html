@@ -3,84 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Artest - AR Coloring Experience</title>
-    
-    <!-- Dependencies: Only A-Frame for 3D, No Camera needed -->
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    
-    <link rel="stylesheet" href="style.css">
+    <title>Artest - Digital Paint to 3D</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap');
+        
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            --bg-dark: #0d0d12;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body { 
+            margin: 0; 
+            display: flex; 
+            font-family: 'Outfit', sans-serif; 
+            height: 100vh; 
+            overflow: hidden; 
+            background: var(--bg-dark);
+            color: white;
+        }
+
+        #canvas-container { 
+            width: 400px; 
+            border-right: 1px solid var(--border); 
+            display: flex; 
+            flex-direction: column; 
+            padding: 24px; 
+            background: #111118;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        #three-container { 
+            flex: 1; 
+            background: radial-gradient(circle at center, #1e1f29, #0d0d12);
+            position: relative;
+        }
+
+        h3 { 
+            margin: 0 0 8px 0; 
+            font-size: 20px; 
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p { font-size: 13px; color: #71717a; margin-bottom: 20px; }
+
+        canvas#paintCanvas { 
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 20px;
+            cursor: crosshair; 
+            background: white; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            image-rendering: auto;
+            touch-action: none;
+        }
+
+        .controls { 
+            margin-top: 24px; 
+            display: flex; 
+            flex-direction: column;
+            gap: 16px; 
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        input[type="color"] {
+            appearance: none;
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            background: none;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--glass);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover { background: rgba(255,255,255,0.1); }
+
+        #scan-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 800px) {
+            body { flex-direction: column; }
+            #canvas-container { width: 100%; height: 50%; border-right: none; border-bottom: 1px solid var(--border); }
+            #three-container { height: 50%; }
+        }
+    </style>
 </head>
 <body>
 
-    <div id="main-container">
-        <!-- Coloring Section -->
-        <section id="coloring-section">
-            <header>
-                <h1>Artest Coloring</h1>
-                <p>Warnai gambar di bawah ini, lalu tekan tombol Scan untuk memunculkan objek 3D!</p>
-            </header>
-            
-            <div id="canvas-container">
-                <div id="scan-line"></div>
-                <canvas id="drawingCanvas"></canvas>
-            </div>
-
-            <div class="controls">
-                <div class="row">
-                    <div class="row-header">
-                        <label>Ukuran Kuas</label>
-                        <span id="brushSizeDisplay">15px</span>
-                    </div>
-                    <input type="range" id="penSize" min="5" max="60" value="15">
-                </div>
-
-                <div class="row">
-                    <label>Pilih Warna</label>
-                    <div class="color-palette">
-                        <div class="color-swatch active" style="background:#6366f1" data-color="#6366f1"></div>
-                        <div class="color-swatch" style="background:#f43f5e" data-color="#f43f5e"></div>
-                        <div class="color-swatch" style="background:#10b981" data-color="#10b981"></div>
-                        <div class="color-swatch" style="background:#f59e0b" data-color="#f59e0b"></div>
-                        <div class="color-swatch" style="background:#3b82f6" data-color="#3b82f6"></div>
-                        <div class="color-swatch" style="background:#000000" data-color="#000000"></div>
-                        <div class="color-swatch" style="background:#ffffff" data-color="#ffffff"></div> <!-- Eraser-like white -->
-                    </div>
-                </div>
-
-                <div class="buttons">
-                    <button id="clearBtn">Hapus Semua</button>
-                    <button id="scanBtn">Mulai Scan 🚀</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Result Section (Preview) -->
-        <section id="preview-section" class="hidden">
-            <div id="preview-label">Hasil Artest 3D</div>
-            <button id="closePreview">✕ Tutup</button>
-
-            <a-scene embedded vr-mode-ui="enabled: false">
-                <a-assets>
-                    <a-asset-item id="modelAsset" src="assets/marker 1.glb"></a-asset-item>
-                </a-assets>
-
-                <a-entity 
-                    id="coloredObject"
-                    gltf-model="#modelAsset" 
-                    scale="2 2 2" 
-                    position="0 0 -3.5" 
-                    rotation="0 45 0"
-                    animation="property: rotation; to: 0 405 0; loop: true; dur: 20000; easing: linear"
-                    visible="false">
-                </a-entity>
-
-                <a-sky color="#0d0d12"></a-sky>
-                <a-light type="ambient" intensity="0.9"></a-light>
-                <a-light type="directional" position="1 2 1" intensity="0.8"></a-light>
-            </a-scene>
-        </section>
+<div id="canvas-container">
+    <h3>Artest Digital</h3>
+    <p>Warnai line-art di bawah. Hasilnya akan langsung muncul pada objek 3D di samping.</p>
+    
+    <canvas id="paintCanvas" width="1024" height="1024"></canvas>
+    
+    <div class="controls">
+        <div class="control-row">
+            <label style="font-size: 12px; color: #a1a1aa;">PILIH WARNA</label>
+            <input type="color" id="colorPicker" value="#6366f1">
+        </div>
+        <button onclick="clearCanvas()">Hapus Semua</button>
     </div>
+</div>
 
-    <script src="app.js"></script>
+<div id="three-container">
+    <div id="scan-indicator">3D Preview Mode</div>
+</div>
+
+<script type="importmap">
+    { 
+        "imports": { 
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        } 
+    }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    // --- SETUP CANVAS 2D ---
+    const canvas = document.getElementById('paintCanvas');
+    const ctx = canvas.getContext('2d');
+    const colorPicker = document.getElementById('colorPicker');
+    let painting = false;
+
+    // Load Line Art
+    const lineArt = new Image();
+    lineArt.src = 'assets/line art.png';
+    lineArt.onload = () => {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(lineArt, 0, 0, canvas.width, canvas.height);
+        updateTexture();
+    };
+
+    function startPosition(e) { painting = true; draw(e); }
+    function finishedPosition() { painting = false; ctx.beginPath(); updateTexture(); }
+    
+    function draw(e) {
+        if (!painting) return;
+        const rect = canvas.getBoundingClientRect();
+        
+        // Handle Mouse and Touch coordinates
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        const x = (clientX - rect.left) * (canvas.width / rect.width);
+        const y = (clientY - rect.top) * (canvas.height / rect.height);
+
+        ctx.lineWidth = 20;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = colorPicker.value;
+
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        updateTexture();
+    }
+
+    canvas.addEventListener('mousedown', startPosition);
+    canvas.addEventListener('mouseup', finishedPosition);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e); });
+    canvas.addEventListener('touchend', finishedPosition);
+    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); });
+
+    // --- SETUP THREE.JS ---
+    const container = document.getElementById('three-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.flipY = false; // Important for many GLB models
+
+    // Load User Model
+    const loader = new GLTFLoader();
+    let model;
+    loader.load('assets/marker 1.glb', (gltf) => {
+        model = gltf.scene;
+        model.traverse((node) => {
+            if (node.isMesh) {
+                node.material.map = texture;
+                node.material.needsUpdate = true;
+            }
+        });
+        
+        // Auto-center and scale model
+        const box = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        model.position.sub(center); // Center the model
+        
+        scene.add(model);
+        console.log("Model Loaded Successfully");
+    }, undefined, (error) => {
+        console.error("Error loading model:", error);
+    });
+
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    scene.add(ambientLight);
+    
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.position.set(5, 5, 5);
+    scene.add(dirLight);
+
+    camera.position.z = 5;
+
+    function updateTexture() {
+        texture.needsUpdate = true;
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.clearCanvas = () => {
+        if(confirm("Hapus semua coretan?")) {
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (lineArt.complete) ctx.drawImage(lineArt, 0, 0, canvas.width, canvas.height);
+            updateTexture();
+        }
+    };
+
+    window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+</script>
 </body>
 </html>
