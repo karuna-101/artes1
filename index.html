@@ -13,20 +13,28 @@
 </head>
 <body>
 
+    <!-- UI Toggle Button -->
+    <button id="ui-toggle" aria-label="Toggle UI">🎨</button>
+
     <!-- UI Coloring Dashboard -->
     <div id="ui-overlay">
-        <h1>AR Coloring</h1>
+        <h1>Artest AR</h1>
         <p>Warnai di bawah ini untuk melihat hasilnya pada objek 3D!</p>
         
         <canvas id="drawingCanvas"></canvas>
 
         <div class="controls">
             <div class="row">
-                <label>Ukuran Kuas</label>
-                <input type="range" id="penSize" min="5" max="50" value="15">
+                <div class="row-header">
+                    <label>Ukuran Kuas</label>
+                    <span id="brushSizeDisplay" style="font-size: 12px; color: #6366f1;">15px</span>
+                </div>
+                <input type="range" id="penSize" min="5" max="60" value="15">
             </div>
 
-            <div class="color-palette">
+            <div class="row">
+                <label>Pilih Warna</label>
+                <div class="color-palette">
                 <div class="color-swatch active" style="background:#6366f1" data-color="#6366f1"></div>
                 <div class="color-swatch" style="background:#f43f5e" data-color="#f43f5e"></div>
                 <div class="color-swatch" style="background:#10b981" data-color="#10b981"></div>

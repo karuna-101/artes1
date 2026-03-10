@@ -6,7 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctx = canvas.getContext('2d');
     const colorSwatches = document.querySelectorAll('.color-swatch');
     const rangeInput = document.getElementById('penSize');
+    const brushSizeDisplay = document.getElementById('brushSizeDisplay');
     const clearBtn = document.getElementById('clearBtn');
+    const uiOverlay = document.getElementById('ui-overlay');
+    const uiToggle = document.getElementById('ui-toggle');
     
     // Set Canvas Internal Resolution - 1024x1024 for better texture quality
     const resolution = 1024;
@@ -58,29 +61,25 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.lineCap = 'round';
         ctx.strokeStyle = currentColor;
 
-        // Get coordinates relative to canvas displayed size
         const rect = canvas.getBoundingClientRect();
-        const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-        const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-        
-        // Similarly for touch
-        if (e.touches) {
-            const touch = e.touches[0];
-            const tx = (touch.clientX - rect.left) * (canvas.width / rect.width);
-            const ty = (touch.clientY - rect.top) * (canvas.height / rect.height);
-            ctx.lineTo(tx, ty);
+        let clientX, clientY;
+
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+            e.preventDefault(); // Prevent scrolling while drawing
         } else {
-            ctx.lineTo(x, y);
+            clientX = e.clientX;
+            clientY = e.clientY;
         }
+
+        const x = (clientX - rect.left) * (canvas.width / rect.width);
+        const y = (clientY - rect.top) * (canvas.height / rect.height);
         
+        ctx.lineTo(x, y);
         ctx.stroke();
         ctx.beginPath();
-        if (e.touches) {
-            const touch = e.touches[0];
-            ctx.moveTo((touch.clientX - rect.left) * (canvas.width / rect.width), (touch.clientY - rect.top) * (canvas.height / rect.height));
-        } else {
-            ctx.moveTo(x, y);
-        }
+        ctx.moveTo(x, y);
     }
 
     // A-Frame Texture Sync helper
@@ -124,6 +123,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Pen Size
     rangeInput.addEventListener('input', (e) => {
         currentWidth = e.target.value;
+        if (brushSizeDisplay) brushSizeDisplay.innerText = `${currentWidth}px`;
+    });
+
+    // UI Toggle
+    uiToggle.addEventListener('click', () => {
+        uiOverlay.classList.toggle('hidden');
+        uiToggle.innerText = uiOverlay.classList.contains('hidden') ? '🎨' : '✕';
     });
 
     // Clear Canvas - Repaint white then line art
