@@ -84,19 +84,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // A-Frame Texture Sync helper
     function updateAFrameTexture() {
-        // Find the 3D model entity
         const modelEntity = document.querySelector('#coloredObject');
-        if (modelEntity && modelEntity.getObject3D('mesh')) {
-            const mesh = modelEntity.getObject3D('mesh');
-            mesh.traverse((node) => {
-                if (node.isMesh) {
-                    // Update material map
-                    if (node.material && node.material.map) {
-                        node.material.map.needsUpdate = true;
-                    }
+        if (!modelEntity) return;
+
+        const mesh = modelEntity.getObject3D('mesh');
+        if (!mesh) return;
+
+        mesh.traverse((node) => {
+            if (node.isMesh && node.material) {
+                // If map exists, just update it
+                if (node.material.map) {
+                    node.material.map.needsUpdate = true;
+                } else {
+                    // If no map, create and assign it
+                    const newTexture = new AFRAME.THREE.CanvasTexture(canvas);
+                    newTexture.flipY = false;
+                    node.material.map = newTexture;
+                    node.material.needsUpdate = true;
                 }
-            });
-        }
+            }
+        });
     }
 
     // Event Listeners for PC
@@ -146,18 +153,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const scene = document.querySelector('a-scene');
     const initTexture = () => {
         const model = document.querySelector('#coloredObject');
-        model.addEventListener('model-loaded', () => {
+        if (!model) return;
+
+        const applyTexture = () => {
             const mesh = model.getObject3D('mesh');
-            const texture = new THREE.CanvasTexture(canvas);
-            
-            mesh.traverse(node => {
-                if (node.isMesh) {
-                    node.material.map = texture;
-                    node.material.needsUpdate = true;
-                }
-            });
-            console.log("Texture Applied to Model!");
-        });
+            if (mesh) {
+                const texture = new AFRAME.THREE.CanvasTexture(canvas);
+                texture.flipY = false; // Important for GLTF models
+                
+                mesh.traverse(node => {
+                    if (node.isMesh) {
+                        node.material.map = texture;
+                        node.material.needsUpdate = true;
+                    }
+                });
+                console.log("Texture Applied Successfully!");
+            }
+        };
+
+        model.addEventListener('model-loaded', applyTexture);
+        // If it's already loaded
+        if (model.getObject3D('mesh')) applyTexture();
     };
 
     if (scene.hasLoaded) initTexture(); else scene.addEventListener('loaded', initTexture);
