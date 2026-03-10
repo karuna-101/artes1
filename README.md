@@ -1,26 +1,19 @@
-# Artest - Web AR Coloring (Quiver Style) - UPDATED
+# Artest - Web Digital Coloring (No Camera Needed)
 
-Aplikasi ini telah diintegrasikan dengan aset Anda secara otomatis.
+Proyek ini telah diperbarui menjadi pengalaman mewarnai digital penuh di web. Tidak perlu menggunakan kamera fisik.
 
-## File Terintegrasi:
-1. **Line Art**: `assets/line art.png` digunakan sebagai template mewarnai pada canvas.
-2. **Objek 3D**: `assets/marker 1.glb` digunakan sebagai model utama yang muncul di AR.
+## 🎨 Alur Kerja:
+1. **Warnai**: Gunakan palet warna untuk mewarnai karakter burung pada kanvas `line-art`.
+2. **Scan**: Klik tombol **"Mulai Scan"** untuk memproses warna Anda secara digital. 
+   - *Akan ada animasi laser scan di atas kanvas.*
+3. **Hasil**: Selesai scan, hasil karya Anda akan muncul secara otomatis dalam bentuk objek 3D yang interaktif (menggunakan `marker 1.glb`).
 
-## Cara Menggunakan:
-1. **Jalankan Server**: Gunakan VS Code `Live Server` atau `npx serve .` di folder ini.
-2. **Siapkan Marker**: Buka browser dan arahkan kamera ke **Marker Hiro**.
-   - Anda bisa mencari "AR.js Hiro Marker" di Google dan tunjukkan di layar HP lain atau print.
-3. **Mewarnai**: Warnai gambar di panel kiri. Hasilnya akan langsung muncul di model 3D di layar tengah.
+## 🛠️ Persiapan:
+1. Pastikan file `line art.png` dan `marker 1.glb` ada di folder `assets/`.
+2. Jalankan server lokal (misal: `Live Server`).
+3. Buka `index.html` di browser laptop atau HP.
 
-## Catatan Teknis:
-- **Aset Besar**: File `line art.png` Anda cukup besar (~7MB). Browser mungkin butuh beberapa detik untuk memuatnya pertama kali.
-- **Tekstur (UV Map)**: Agar pewarnaan rapi, model `marker 1.glb` harus memiliki UV Mapping yang sesuai dengan layout di `line art.png`.
-- **Model Lain**: Jika ingin menggunakan `objek 1.blend`, mohon export dulu ke format `.glb` melalui Blender, lalu ganti di `index.html`.
-
-## Cara Mengganti Marker Kustom:
-Jika Anda ingin menggunakan gambar sendiri sebagai marker:
-1. Pindahkan file `.patt` ke folder `assets/`.
-2. Buka `index.html` dan ganti `<a-marker preset="hiro">` menjadi:
-   ```html
-   <a-marker type="pattern" url="assets/nama_file.patt">
-   ```
+## 💻 Teknologi:
+- **A-Frame**: Digunakan untuk menampilkan hasil 3D tanpa AR/Kamera.
+- **HTML5 Canvas**: Untuk papan mewarnai yang responsif.
+- **Pure JavaScript**: Logika pewarnaan dan sinkronisasi tekstur.
