@@ -145,8 +145,9 @@
         <div class="row">
             <label>📂 Pilih Karakter</label>
             <select id="assetSelector" style="width:100%; padding: 12px; border-radius: 12px; background: #1e1f29; color: white; border: 1px solid var(--border); font-family: 'Outfit', sans-serif;">
-                <option value="assets/">Karakter 1 (Burung)</option>
-                <option value="assets/2/">Karakter 2 (Baru)</option>
+                <option value="assets/|marker 1.glb">Karakter 1 (Burung)</option>
+                <option value="assets/2/|jeruk.glb">Karakter 2 (Jeruk)</option>
+                <option value="assets/2/|nada.glb">Karakter 3 (Nada)</option>
             </select>
         </div>
         <div class="row">
@@ -282,11 +283,10 @@
     const loader = new GLTFLoader();
     let model;
 
-    function loadModelIntoScene(folder) {
+    function loadModelIntoScene(folder, fileName) {
         // Clear previous model
         if (model) scene.remove(model);
         
-        const fileName = (folder === 'assets/') ? 'marker 1.glb' : 'objek.glb';
         console.log(`Loading: ${folder}${fileName}`);
 
         loader.load(folder + fileName, (gltf) => {
@@ -317,7 +317,9 @@
             texture.needsUpdate = true;
         }, undefined, (err) => console.error("Error loading model:", err));
     }
-    loadModelIntoScene(currentFolder);
+    // Initial Load
+    const initialAsset = assetSelector.value.split('|');
+    loadModelIntoScene(initialAsset[0], initialAsset[1]);
 
     function updateTexture() {
         texture.needsUpdate = true;
@@ -338,13 +340,22 @@
     // Asset Selector Event
     assetSelector.addEventListener('change', (e) => {
         if(confirm("Ganti karakter? Karya saat ini akan dihapus.")) {
-            currentFolder = e.target.value;
+            const [folder, file] = e.target.value.split('|');
+            currentFolder = folder;
             loadLineArtTemplate();
-            loadModelIntoScene(currentFolder);
+            loadModelIntoScene(folder, file);
         } else {
-            assetSelector.value = currentFolder; // Reset selector
+            assetSelector.value = `${currentFolder}|${modelFileName}`; // Need to track this
         }
     });
+
+    // Track current filename for reset
+    let modelFileName = 'marker 1.glb';
+    const originalLoadModel = loadModelIntoScene;
+    loadModelIntoScene = (folder, file) => {
+        modelFileName = file;
+        originalLoadModel(folder, file);
+    };
 
     // UI Logic
     scanBtn.addEventListener('click', () => {
