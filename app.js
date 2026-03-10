@@ -74,9 +74,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!mesh) return;
 
         // Visual feedback for scan
-        scanBtn.innerText = "Scanning...";
+        scanBtn.innerText = "⏳ Scanning...";
         scanBtn.disabled = true;
-        if (statusIndicator) statusIndicator.classList.add('hidden');
+        
+        if (statusIndicator) {
+            statusIndicator.innerText = "Processing colors...";
+            statusIndicator.classList.remove('hidden');
+        }
 
         setTimeout(() => {
             mesh.traverse((node) => {
@@ -87,9 +91,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     node.material.needsUpdate = true;
                 }
             });
+            
+            // Make visible after first scan
+            modelEntity.setAttribute('visible', 'true');
+            
             scanBtn.innerText = "Scan & Update 🚀";
             scanBtn.disabled = false;
-        }, 800);
+            if (statusIndicator) statusIndicator.innerText = "Update Berhasil!";
+        }, 1200);
     }
 
     // Event Listeners
@@ -124,8 +133,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial load check
     const model = document.querySelector('#coloredObject');
     if (model) {
+        // Hide initially until scan is clicked
+        model.setAttribute('visible', 'false');
+        
         model.addEventListener('model-loaded', () => {
-            if (statusIndicator) statusIndicator.innerText = "Siap! Warnai di kiri/atas";
+            if (statusIndicator) statusIndicator.innerText = "Siap! Warnai & klik Scan";
         });
     }
 });
