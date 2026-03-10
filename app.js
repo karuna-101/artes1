@@ -1,6 +1,4 @@
-// AR Coloring App Logic
-// (Quiver-style: Color on 2D, see on 3D AR)
-
+// Artest - High Performance Coloring Section
 document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('drawingCanvas');
     const ctx = canvas.getContext('2d');
@@ -8,10 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const rangeInput = document.getElementById('penSize');
     const brushSizeDisplay = document.getElementById('brushSizeDisplay');
     const clearBtn = document.getElementById('clearBtn');
-    const uiOverlay = document.getElementById('ui-overlay');
-    const uiToggle = document.getElementById('ui-toggle');
-    
-    // Set Canvas Internal Resolution - 1024x1024 for better texture quality
+    const scanBtn = document.getElementById('scanBtn');
+    const statusIndicator = document.getElementById('status-indicator');
+
     const resolution = 1024;
     canvas.width = resolution;
     canvas.height = resolution;
@@ -20,22 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const lineArt = new Image();
     lineArt.src = 'assets/line art.png';
     lineArt.onload = () => {
-        // Fill with white first
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, resolution, resolution);
-        // Draw the line art over it
         ctx.drawImage(lineArt, 0, 0, resolution, resolution);
-        updateAFrameTexture();
-    };
-    
-    // Fallback if image fails
-    lineArt.onerror = () => {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, resolution, resolution);
-        ctx.fillStyle = '#f0f0f0';
-        ctx.font = '40px Outfit';
-        ctx.textAlign = 'center';
-        ctx.fillText('Line Art tidak ditemukan', resolution/2, resolution/2);
+        // Don't update texture yet, let use draw first
     };
 
     let painting = false;
@@ -50,8 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function finishedPosition() {
         painting = false;
         ctx.beginPath();
-        // Notify A-Frame that the texture has changed
-        updateAFrameTexture();
     }
 
     function draw(e) {
@@ -67,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.touches && e.touches.length > 0) {
             clientX = e.touches[0].clientX;
             clientY = e.touches[0].clientY;
-            e.preventDefault(); // Prevent scrolling while drawing
+            e.preventDefault();
         } else {
             clientX = e.clientX;
             clientY = e.clientY;
@@ -82,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.moveTo(x, y);
     }
 
-    // A-Frame Texture Sync helper
+    // A-Frame Texture Update
     function updateAFrameTexture() {
         const modelEntity = document.querySelector('#coloredObject');
         if (!modelEntity) return;
@@ -90,91 +73,59 @@ document.addEventListener('DOMContentLoaded', () => {
         const mesh = modelEntity.getObject3D('mesh');
         if (!mesh) return;
 
-        mesh.traverse((node) => {
-            if (node.isMesh && node.material) {
-                // If map exists, just update it
-                if (node.material.map) {
-                    node.material.map.needsUpdate = true;
-                } else {
-                    // If no map, create and assign it
+        // Visual feedback for scan
+        scanBtn.innerText = "Scanning...";
+        scanBtn.disabled = true;
+        if (statusIndicator) statusIndicator.classList.add('hidden');
+
+        setTimeout(() => {
+            mesh.traverse((node) => {
+                if (node.isMesh && node.material) {
                     const newTexture = new AFRAME.THREE.CanvasTexture(canvas);
                     newTexture.flipY = false;
                     node.material.map = newTexture;
                     node.material.needsUpdate = true;
                 }
-            }
-        });
+            });
+            scanBtn.innerText = "Scan & Update 🚀";
+            scanBtn.disabled = false;
+        }, 800);
     }
 
-    // Event Listeners for PC
+    // Event Listeners
     canvas.addEventListener('mousedown', startPosition);
     canvas.addEventListener('mouseup', finishedPosition);
     canvas.addEventListener('mousemove', draw);
-    
-    // Event Listeners for Mobile
     canvas.addEventListener('touchstart', startPosition);
     canvas.addEventListener('touchend', finishedPosition);
     canvas.addEventListener('touchmove', draw);
 
-    // Color Swatches
     colorSwatches.forEach(swatch => {
         swatch.addEventListener('click', () => {
             colorSwatches.forEach(s => s.classList.remove('active'));
             swatch.classList.add('active');
             currentColor = swatch.getAttribute('data-color');
-            const picker = document.querySelector('.color-picker');
-            if (picker) picker.value = currentColor;
         });
     });
 
-    // Pen Size
     rangeInput.addEventListener('input', (e) => {
         currentWidth = e.target.value;
         if (brushSizeDisplay) brushSizeDisplay.innerText = `${currentWidth}px`;
     });
 
-    // UI Toggle
-    uiToggle.addEventListener('click', () => {
-        uiOverlay.classList.toggle('hidden');
-        uiToggle.innerText = uiOverlay.classList.contains('hidden') ? '🎨' : '✕';
-    });
-
-    // Clear Canvas - Repaint white then line art
     clearBtn.addEventListener('click', () => {
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, resolution, resolution);
-        if (lineArt.complete) {
-            ctx.drawImage(lineArt, 0, 0, resolution, resolution);
-        }
-        updateAFrameTexture();
+        if (lineArt.complete) ctx.drawImage(lineArt, 0, 0, resolution, resolution);
     });
 
-    // Initialize - Map the canvas to the model when the model loads
-    const scene = document.querySelector('a-scene');
-    const initTexture = () => {
-        const model = document.querySelector('#coloredObject');
-        if (!model) return;
+    scanBtn.addEventListener('click', updateAFrameTexture);
 
-        const applyTexture = () => {
-            const mesh = model.getObject3D('mesh');
-            if (mesh) {
-                const texture = new AFRAME.THREE.CanvasTexture(canvas);
-                texture.flipY = false; // Important for GLTF models
-                
-                mesh.traverse(node => {
-                    if (node.isMesh) {
-                        node.material.map = texture;
-                        node.material.needsUpdate = true;
-                    }
-                });
-                console.log("Texture Applied Successfully!");
-            }
-        };
-
-        model.addEventListener('model-loaded', applyTexture);
-        // If it's already loaded
-        if (model.getObject3D('mesh')) applyTexture();
-    };
-
-    if (scene.hasLoaded) initTexture(); else scene.addEventListener('loaded', initTexture);
+    // Initial load check
+    const model = document.querySelector('#coloredObject');
+    if (model) {
+        model.addEventListener('model-loaded', () => {
+            if (statusIndicator) statusIndicator.innerText = "Siap! Warnai di kiri/atas";
+        });
+    }
 });
