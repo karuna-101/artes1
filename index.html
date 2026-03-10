@@ -16,16 +16,21 @@
     <div id="main-container">
         <!-- Coloring Section -->
         <section id="coloring-section">
-            <h1>Artest Preview</h1>
-            <p>Warnai line-art di bawah, lalu klik <b>Scan & Update</b> untuk menempelkan karyamu ke objek 3D!</p>
+            <header>
+                <h1>Artest Coloring</h1>
+                <p>Warnai gambar di bawah ini, lalu tekan tombol Scan untuk memunculkan objek 3D!</p>
+            </header>
             
-            <canvas id="drawingCanvas"></canvas>
+            <div id="canvas-container">
+                <div id="scan-line"></div>
+                <canvas id="drawingCanvas"></canvas>
+            </div>
 
             <div class="controls">
                 <div class="row">
                     <div class="row-header">
                         <label>Ukuran Kuas</label>
-                        <span id="brushSizeDisplay" style="font-size: 12px; color: #6366f1;">15px</span>
+                        <span id="brushSizeDisplay">15px</span>
                     </div>
                     <input type="range" id="penSize" min="5" max="60" value="15">
                 </div>
@@ -39,24 +44,24 @@
                         <div class="color-swatch" style="background:#f59e0b" data-color="#f59e0b"></div>
                         <div class="color-swatch" style="background:#3b82f6" data-color="#3b82f6"></div>
                         <div class="color-swatch" style="background:#000000" data-color="#000000"></div>
+                        <div class="color-swatch" style="background:#ffffff" data-color="#ffffff"></div> <!-- Eraser-like white -->
                     </div>
                 </div>
 
                 <div class="buttons">
-                    <button id="clearBtn">Hapus</button>
-                    <button id="scanBtn">Scan & Update 🚀</button>
+                    <button id="clearBtn">Hapus Semua</button>
+                    <button id="scanBtn">Mulai Scan 🚀</button>
                 </div>
             </div>
         </section>
 
-        <!-- Preview Section -->
-        <section id="preview-section">
-            <div id="preview-label">3D Preview</div>
-            <div id="status-indicator">Tunggu kursor di atas...</div>
+        <!-- Result Section (Preview) -->
+        <section id="preview-section" class="hidden">
+            <div id="preview-label">Hasil Artest 3D</div>
+            <button id="closePreview">✕ Tutup</button>
 
             <a-scene embedded vr-mode-ui="enabled: false">
                 <a-assets>
-                    <!-- Menggunakan file .glb Anda sebagai objek utama -->
                     <a-asset-item id="modelAsset" src="assets/marker 1.glb"></a-asset-item>
                 </a-assets>
 
@@ -64,13 +69,14 @@
                     id="coloredObject"
                     gltf-model="#modelAsset" 
                     scale="2 2 2" 
-                    position="0 0 -3" 
+                    position="0 0 -3.5" 
                     rotation="0 45 0"
-                    animation="property: rotation; to: 0 405 0; loop: true; dur: 20000; easing: linear">
+                    animation="property: rotation; to: 0 405 0; loop: true; dur: 20000; easing: linear"
+                    visible="false">
                 </a-entity>
 
                 <a-sky color="#0d0d12"></a-sky>
-                <a-light type="ambient" intensity="0.8"></a-light>
+                <a-light type="ambient" intensity="0.9"></a-light>
                 <a-light type="directional" position="1 2 1" intensity="0.8"></a-light>
             </a-scene>
         </section>

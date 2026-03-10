@@ -1,4 +1,4 @@
-// Artest - High Performance Coloring Section
+// Artest - Rebuild: Line-Art Coloring -> Scan -> Display 3D
 document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('drawingCanvas');
     const ctx = canvas.getContext('2d');
@@ -7,7 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const brushSizeDisplay = document.getElementById('brushSizeDisplay');
     const clearBtn = document.getElementById('clearBtn');
     const scanBtn = document.getElementById('scanBtn');
-    const statusIndicator = document.getElementById('status-indicator');
+    const closePreview = document.getElementById('closePreview');
+    const previewSection = document.getElementById('preview-section');
+    const scanLine = document.getElementById('scan-line');
 
     const resolution = 1024;
     canvas.width = resolution;
@@ -20,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, resolution, resolution);
         ctx.drawImage(lineArt, 0, 0, resolution, resolution);
-        // Don't update texture yet, let use draw first
     };
 
     let painting = false;
@@ -65,40 +66,40 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.moveTo(x, y);
     }
 
-    // A-Frame Texture Update
-    function updateAFrameTexture() {
+    // Manual Scan Function
+    function startScan() {
+        scanBtn.disabled = true;
+        scanBtn.innerText = "Scanning... 🔍";
+        scanLine.classList.add('scanning');
+
+        setTimeout(() => {
+            update3DModel();
+            scanBtn.disabled = false;
+            scanBtn.innerText = "Mulai Scan 🚀";
+            scanLine.classList.remove('scanning');
+            
+            // Show result overlay
+            previewSection.classList.remove('hidden');
+        }, 2200); // Animation duration
+    }
+
+    function update3DModel() {
         const modelEntity = document.querySelector('#coloredObject');
         if (!modelEntity) return;
 
         const mesh = modelEntity.getObject3D('mesh');
         if (!mesh) return;
 
-        // Visual feedback for scan
-        scanBtn.innerText = "⏳ Scanning...";
-        scanBtn.disabled = true;
+        mesh.traverse((node) => {
+            if (node.isMesh && node.material) {
+                const newTexture = new AFRAME.THREE.CanvasTexture(canvas);
+                newTexture.flipY = false;
+                node.material.map = newTexture;
+                node.material.needsUpdate = true;
+            }
+        });
         
-        if (statusIndicator) {
-            statusIndicator.innerText = "Processing colors...";
-            statusIndicator.classList.remove('hidden');
-        }
-
-        setTimeout(() => {
-            mesh.traverse((node) => {
-                if (node.isMesh && node.material) {
-                    const newTexture = new AFRAME.THREE.CanvasTexture(canvas);
-                    newTexture.flipY = false;
-                    node.material.map = newTexture;
-                    node.material.needsUpdate = true;
-                }
-            });
-            
-            // Make visible after first scan
-            modelEntity.setAttribute('visible', 'true');
-            
-            scanBtn.innerText = "Scan & Update 🚀";
-            scanBtn.disabled = false;
-            if (statusIndicator) statusIndicator.innerText = "Update Berhasil!";
-        }, 1200);
+        modelEntity.setAttribute('visible', 'true');
     }
 
     // Event Listeners
@@ -114,6 +115,13 @@ document.addEventListener('DOMContentLoaded', () => {
             colorSwatches.forEach(s => s.classList.remove('active'));
             swatch.classList.add('active');
             currentColor = swatch.getAttribute('data-color');
+            
+            // If white, it's an eraser
+            if (currentColor === '#ffffff') {
+                // We keep drawing on top of line art, so eraser is just white brush
+                // But wait, it might cover the line art. 
+                // Technically true, but in this "scan" context it's okay.
+            }
         });
     });
 
@@ -123,21 +131,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     clearBtn.addEventListener('click', () => {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, resolution, resolution);
-        if (lineArt.complete) ctx.drawImage(lineArt, 0, 0, resolution, resolution);
+        if(confirm("Hapus semua coretan?")) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, resolution, resolution);
+            if (lineArt.complete) ctx.drawImage(lineArt, 0, 0, resolution, resolution);
+        }
     });
 
-    scanBtn.addEventListener('click', updateAFrameTexture);
-
-    // Initial load check
-    const model = document.querySelector('#coloredObject');
-    if (model) {
-        // Hide initially until scan is clicked
-        model.setAttribute('visible', 'false');
-        
-        model.addEventListener('model-loaded', () => {
-            if (statusIndicator) statusIndicator.innerText = "Siap! Warnai & klik Scan";
-        });
-    }
+    scanBtn.addEventListener('click', startScan);
+    
+    closePreview.addEventListener('click', () => {
+        previewSection.classList.add('hidden');
+    });
 });
