@@ -17,7 +17,7 @@
         <!-- Coloring Section -->
         <section id="coloring-section">
             <h1>Artest Preview</h1>
-            <p>Warnai di bawah, lalu klik <b>Scan & Update</b> untuk melihat hasil 3D.</p>
+            <p>Warnai line-art di bawah, lalu klik <b>Scan & Update</b> untuk menempelkan karyamu ke objek 3D!</p>
             
             <canvas id="drawingCanvas"></canvas>
 
@@ -56,21 +56,22 @@
 
             <a-scene embedded vr-mode-ui="enabled: false">
                 <a-assets>
-                    <a-asset-item id="userModel" src="assets/marker 1.glb"></a-asset-item>
+                    <!-- Menggunakan file .glb Anda sebagai objek utama -->
+                    <a-asset-item id="modelAsset" src="assets/marker 1.glb"></a-asset-item>
                 </a-assets>
 
                 <a-entity 
                     id="coloredObject"
-                    gltf-model="#userModel" 
-                    scale="1.5 1.5 1.5" 
-                    position="0 0 -2.5" 
+                    gltf-model="#modelAsset" 
+                    scale="2 2 2" 
+                    position="0 0 -3" 
                     rotation="0 45 0"
-                    animation="property: rotation; to: 0 405 0; loop: true; dur: 15000; easing: linear">
+                    animation="property: rotation; to: 0 405 0; loop: true; dur: 20000; easing: linear">
                 </a-entity>
 
                 <a-sky color="#0d0d12"></a-sky>
-                <a-light type="ambient" intensity="0.7"></a-light>
-                <a-light type="directional" position="1 1 1" intensity="0.8"></a-light>
+                <a-light type="ambient" intensity="0.8"></a-light>
+                <a-light type="directional" position="1 2 1" intensity="0.8"></a-light>
             </a-scene>
         </section>
     </div>
